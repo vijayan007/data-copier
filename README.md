@@ -15,4 +15,4 @@ root
 mysql
 SELECT * FROM table1
 ```
-- Run `java com.github.vijayan007.DataCopier -Djava.util.logging.config.file=src/main/resources/logging.properties src/main/resources/input-file.txt'
+- Run `java com.github.vijayan007.DataCopier -Djava.util.logging.config.file=src/main/resources/logging.properties src/main/resources/input-file.txt`
