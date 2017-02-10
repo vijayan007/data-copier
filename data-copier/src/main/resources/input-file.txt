@@ -1,0 +1,9 @@
+com.mysql.cj.jdbc.Driver
+jdbc:mysql://localhost:3306/source
+root
+mysql
+com.mysql.cj.jdbc.Driver
+jdbc:mysql://localhost:3306/dest
+root
+mysql
+SELECT * FROM table1
