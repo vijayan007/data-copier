@@ -1,10 +1,14 @@
 # Data Copier
-- Copies data from one DB to another DB
+Copies data from one DB to another DB
+
+## Steps to Run
 - Download this repo in to your local machine
-## Steps for MySQL DB
 - `cd run`
-- edit `mysql.txt` and provide source and destination database connections details and each sqls in a line as shown below 
-- **Note: don't add any empty space**
+
+## Steps for MySQL DB
+- Edit `mysql.txt` and provide source and destination database connections details and each sqls in a line as shown below 
+  - **Note:** don't add any empty space
+
 ### Sample input file
 ```sql
 com.mysql.cj.jdbc.Driver
