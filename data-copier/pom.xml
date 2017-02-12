@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.vijayan007</groupId>
 	<artifactId>data-copier</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<dependencies>
 		<dependency>
 			<groupId>mysql</groupId>

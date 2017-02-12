@@ -1,0 +1,9 @@
+oracle.jdbc.OracleDriver
+jdbc:oracle:thin:@host1:1521/DB1
+user
+password
+oracle.jdbc.OracleDriver
+jdbc:oracle:thin:@host2:1521/DB2
+user
+password
+SELECT * FROM table1
