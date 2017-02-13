@@ -43,59 +43,66 @@ public class DataCopier {
 
 		try {
 			for (String sql : copier.sqls) {
-				Statement srcStmt = srcCon.createStatement();
-				ResultSet srcRs = srcStmt.executeQuery(sql);
-				ResultSetMetaData srcRsMd = srcRs.getMetaData();
+				try {
+					Statement srcStmt = srcCon.createStatement();
+					ResultSet srcRs = srcStmt.executeQuery(sql);
+					ResultSetMetaData srcRsMd = srcRs.getMetaData();
 
-				Statement destStmt = destCon.createStatement();
+					Statement destStmt = destCon.createStatement();
 
-				String destSelectSql = "select * from " + srcRsMd.getTableName(1) + " where 1=2";
-				ResultSet destRs = destStmt.executeQuery(destSelectSql);
-				ResultSetMetaData destRsMd = destRs.getMetaData();
+					String destSelectSql = "select * from " + srcRsMd.getTableName(1) + " where 1=2";
+					ResultSet destRs = destStmt.executeQuery(destSelectSql);
+					ResultSetMetaData destRsMd = destRs.getMetaData();
 
-				if (destRsMd.getColumnCount() < srcRsMd.getColumnCount()) {
-					throw new IllegalArgumentException(sql + " - number of coulmns do not match");
-				}
-
-				HashMap<String, Integer> destColumnNames = getColumnNames(destRsMd);
-
-				List<String> columnNames = new ArrayList<>();
-				List<String> columnParams = new ArrayList<>();
-
-				for (int i = 1; i < srcRsMd.getColumnCount(); i++) {
-					String srcCoulmnName = srcRsMd.getColumnName(i);
-					if (destColumnNames.get(srcCoulmnName) == null) {
-						throw new IllegalArgumentException("could not find " + srcCoulmnName + " in destination db");
+					if (destRsMd.getColumnCount() < srcRsMd.getColumnCount()) {
+						throw new IllegalArgumentException(sql + " - number of coulmns do not match");
 					}
-					columnNames.add(srcCoulmnName);
-					columnParams.add("?");
-				}
 
-				String columns = columnNames.toString().replace('[', '(').replace(']', ')');
-				String params = columnParams.toString().replace('[', '(').replace(']', ')');
+					HashMap<String, Integer> destColumnNames = getColumnNames(destRsMd);
 
-				String destInsertSql = "insert into " + srcRsMd.getTableName(1) + " " + columns + " values " + params;
-				LOGGER.info("Destination SQL:" + destInsertSql);
-				PreparedStatement destInsertStmt = destCon.prepareStatement(destInsertSql);
+					List<String> columnNames = new ArrayList<>();
+					List<String> columnParams = new ArrayList<>();
 
-				while (srcRs.next()) {
 					for (int i = 1; i < srcRsMd.getColumnCount(); i++) {
-						destInsertStmt.setObject(i, srcRs.getObject(i));
+						String srcCoulmnName = srcRsMd.getColumnName(i);
+						if (destColumnNames.get(srcCoulmnName) == null) {
+							throw new IllegalArgumentException(
+									"could not find " + srcCoulmnName + " in destination db");
+						}
+						columnNames.add(srcCoulmnName);
+						columnParams.add("?");
 					}
-					try {
-						destInsertStmt.executeUpdate();
-					} catch (SQLException e) {
-						// Code to skip the conflicted rows
-						LOGGER.warning(e.getMessage());
-						// Assuming the PK is first column
-						LOGGER.warning("Skipping row where " + srcRsMd.getColumnName(1) + " = " + srcRs.getObject(1));
+
+					String columns = columnNames.toString().replace('[', '(').replace(']', ')');
+					String params = columnParams.toString().replace('[', '(').replace(']', ')');
+
+					String destInsertSql = "insert into " + srcRsMd.getTableName(1) + " " + columns + " values "
+							+ params;
+					LOGGER.info("Destination SQL:" + destInsertSql);
+					PreparedStatement destInsertStmt = destCon.prepareStatement(destInsertSql);
+
+					while (srcRs.next()) {
+						for (int i = 1; i < srcRsMd.getColumnCount(); i++) {
+							destInsertStmt.setObject(i, srcRs.getObject(i));
+						}
+						try {
+							destInsertStmt.executeUpdate();
+						} catch (SQLException e) {
+							// Code to skip the conflicted rows
+							LOGGER.warning(e.getMessage());
+							// Assuming the PK is first column
+							LOGGER.warning(
+									"Skipping row where " + srcRsMd.getColumnName(1) + " = " + srcRs.getObject(1));
+						}
 					}
+					srcRs.close();
+					srcStmt.close();
+					destRs.close();
+					destStmt.close();
+					destInsertStmt.close();
+				} catch (SQLException e) {
+					LOGGER.warning("Skipping executing sql = " + sql + " because of " + e.getMessage());
 				}
-				srcRs.close();
-				srcStmt.close();
-				destRs.close();
-				destStmt.close();
-				destInsertStmt.close();
 			}
 			destCon.commit();
 		} catch (SQLException e) {
