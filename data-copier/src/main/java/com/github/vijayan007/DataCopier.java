@@ -49,8 +49,14 @@ public class DataCopier {
 					ResultSetMetaData srcRsMd = srcRs.getMetaData();
 
 					Statement destStmt = destCon.createStatement();
+					
+					String tableName = sql.substring(sql.indexOf("FROM ")+5, sql.indexOf(" WHERE"));
 
-					String destSelectSql = "select * from " + srcRsMd.getTableName(1) + " where 1=2";
+					String destSelectSql = "select * from " + tableName + " where 1=2";
+					
+					LOGGER.info(destSelectSql);
+					
+					
 					ResultSet destRs = destStmt.executeQuery(destSelectSql);
 					ResultSetMetaData destRsMd = destRs.getMetaData();
 
@@ -63,7 +69,7 @@ public class DataCopier {
 					List<String> columnNames = new ArrayList<>();
 					List<String> columnParams = new ArrayList<>();
 
-					for (int i = 1; i < srcRsMd.getColumnCount(); i++) {
+					for (int i = 1; i <= srcRsMd.getColumnCount(); i++) {
 						String srcCoulmnName = srcRsMd.getColumnName(i);
 						if (destColumnNames.get(srcCoulmnName) == null) {
 							throw new IllegalArgumentException(
@@ -76,13 +82,13 @@ public class DataCopier {
 					String columns = columnNames.toString().replace('[', '(').replace(']', ')');
 					String params = columnParams.toString().replace('[', '(').replace(']', ')');
 
-					String destInsertSql = "insert into " + srcRsMd.getTableName(1) + " " + columns + " values "
+					String destInsertSql = "insert into " + tableName + " " + columns + " values "
 							+ params;
 					LOGGER.info("Destination SQL:" + destInsertSql);
 					PreparedStatement destInsertStmt = destCon.prepareStatement(destInsertSql);
 
 					while (srcRs.next()) {
-						for (int i = 1; i < srcRsMd.getColumnCount(); i++) {
+						for (int i = 1; i <= srcRsMd.getColumnCount(); i++) {
 							destInsertStmt.setObject(i, srcRs.getObject(i));
 						}
 						try {
