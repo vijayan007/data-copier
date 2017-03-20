@@ -48,7 +48,7 @@ password
 SELECT * FROM table1
 ```
 ### Command to Run
-`java -cp mysql-connector-java-6.0.5.jar:data-copier-1.0.1.jar -Djava.util.logging.config.file=logging.properties com.github.vijayan007.DataCopier mysql.txt`
+`java -cp ojdbc6-11.2.0.4.0.jar:data-copier-1.0.1.jar -Djava.util.logging.config.file=logging.properties com.github.vijayan007.DataCopier oracle.txt`
 
 ### Sample Output
 ```

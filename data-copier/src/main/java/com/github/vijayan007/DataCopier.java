@@ -45,18 +45,16 @@ public class DataCopier {
 			for (String sql : copier.sqls) {
 				try {
 					Statement srcStmt = srcCon.createStatement();
+					LOGGER.info("Source Select SQL:" + sql);
 					ResultSet srcRs = srcStmt.executeQuery(sql);
 					ResultSetMetaData srcRsMd = srcRs.getMetaData();
 
 					Statement destStmt = destCon.createStatement();
-					
-					String tableName = sql.substring(sql.indexOf("FROM ")+5, sql.indexOf(" WHERE"));
 
-					String destSelectSql = "select * from " + tableName + " where 1=2";
-					
-					LOGGER.info(destSelectSql);
-					
-					
+					String tableName = sql.substring(sql.indexOf("FROM ") + 5, sql.indexOf(" WHERE"));
+					String destSelectSql = "SELECT * FROM " + tableName + " WHERE 1=2";
+					LOGGER.info("Destination Select SQL:" + destSelectSql);
+
 					ResultSet destRs = destStmt.executeQuery(destSelectSql);
 					ResultSetMetaData destRsMd = destRs.getMetaData();
 
@@ -82,9 +80,8 @@ public class DataCopier {
 					String columns = columnNames.toString().replace('[', '(').replace(']', ')');
 					String params = columnParams.toString().replace('[', '(').replace(']', ')');
 
-					String destInsertSql = "insert into " + tableName + " " + columns + " values "
-							+ params;
-					LOGGER.info("Destination SQL:" + destInsertSql);
+					String destInsertSql = "INSERT INTO " + tableName + " " + columns + " VALUES " + params;
+					LOGGER.info("Destination Insert SQL:" + destInsertSql);
 					PreparedStatement destInsertStmt = destCon.prepareStatement(destInsertSql);
 
 					while (srcRs.next()) {
@@ -94,11 +91,9 @@ public class DataCopier {
 						try {
 							destInsertStmt.executeUpdate();
 						} catch (SQLException e) {
-							// Code to skip the conflicted rows
-							LOGGER.warning(e.getMessage());
 							// Assuming the PK is first column
-							LOGGER.warning(
-									"Skipping row where " + srcRsMd.getColumnName(1) + " = " + srcRs.getObject(1));
+							LOGGER.warning("Skipping row where " + srcRsMd.getColumnName(1) + " = " + srcRs.getObject(1)
+									+ " because of " + e.getMessage());
 						}
 					}
 					srcRs.close();
