@@ -48,10 +48,12 @@ public class DataCopier {
 					LOGGER.info("Source Select SQL:" + sql);
 					ResultSet srcRs = srcStmt.executeQuery(sql);
 					ResultSetMetaData srcRsMd = srcRs.getMetaData();
-
+					
+					LOGGER.info("Running setAutoCommit(false) mode");
+					destCon.setAutoCommit(false);
 					Statement destStmt = destCon.createStatement();
 
-					String tableName = sql.substring(sql.indexOf("FROM ") + 5, sql.indexOf(" WHERE"));
+					String tableName = getTableName(sql);
 					String destSelectSql = "SELECT * FROM " + tableName + " WHERE 1=2";
 					LOGGER.info("Destination Select SQL:" + destSelectSql);
 
@@ -106,13 +108,55 @@ public class DataCopier {
 				}
 			}
 			destCon.commit();
+			LOGGER.info("Destination DB is committed successfully");
 		} catch (SQLException e) {
-			LOGGER.severe(e.getMessage());
+			rollback(destCon);
+			LOGGER.severe("Major issues becuase of "+ e.getMessage());
 		} finally {
 			LOGGER.info("Closing connections");
 			Database.closeConnection(destCon);
 			Database.closeConnection(srcCon);
 			LOGGER.info("Closed connections successfully");
+		}
+	}
+
+	private static String getTableName(String sql) {
+		
+		String tableName = null;
+		
+		int startIndex = sql.indexOf("FROM ");
+		
+		//try for small case
+		if(startIndex == -1){
+			startIndex = sql.indexOf("from ");
+		}
+		
+		if(startIndex == -1){
+			return tableName;
+		}else{
+			startIndex = startIndex + 5;
+		}
+		
+		int endIndex = sql.indexOf(" WHERE");
+		//try for small case
+		if(endIndex == -1){
+			endIndex = sql.indexOf(" where");
+		}
+		
+		if(endIndex != -1){
+			tableName = sql.substring(startIndex, endIndex);
+		}else{
+			tableName = sql.substring(startIndex);
+		}
+		
+		return tableName.trim();
+	}
+
+	private static void rollback(Connection con) {
+		try {
+			con.rollback();
+		} catch (SQLException ex) {
+			//Do Nothing
 		}
 	}
 
